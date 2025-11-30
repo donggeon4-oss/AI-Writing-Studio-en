@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Writing Studio – Workspace</title>
+
+  <!-- Main Style -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Workspace UI Style -->
+  <link rel="stylesheet" href="tool.css" />
+</head>
+
+<body class="workspace-bg">
+
+<div class="workspace-grid">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar glass">
+    <div class="logo-area">
+      <div class="logo-title">AI Writing Studio</div>
+      <div class="logo-sub">Premium Writing Workspace</div>
+    </div>
+
+    <div class="menu-section">
+      <p class="menu-label">Auto Writing</p>
+      <button onclick="setMode('auto')" class="menu-btn">✨ Auto Generate</button>
+    </div>
+
+    <div class="menu-section">
+      <p class="menu-label">Document Tools</p>
+      <button onclick="setMode('summary')" class="menu-btn">📝 Summary</button>
+      <button onclick="setMode('email')" class="menu-btn">📧 Email</button>
+      <button onclick="setMode('reply')" class="menu-btn">💬 Reply</button>
+      <button onclick="setMode('report')" class="menu-btn">📄 Report</button>
+    </div>
+
+    <div class="menu-section">
+      <p class="menu-label">Blog Tools</p>
+      <button onclick="setMode('blog')" class="menu-btn">✍ Full Blog Writing</button>
+      <button onclick="setMode('blog_step1')" class="menu-btn">1️⃣ Step 1 – Keyword Analysis</button>
+      <button onclick="setMode('blog_step2')" class="menu-btn">2️⃣ Step 2 – Outline</button>
+      <button onclick="setMode('blog_step3')" class="menu-btn">3️⃣ Step 3 – Full Article</button>
+    </div>
+
+    <div class="menu-section">
+      <p class="menu-label">Rewriting</p>
+      <button onclick="setMode('rewrite_soft')" class="menu-btn">♻ Softer Tone</button>
+      <button onclick="setMode('rewrite_pro')" class="menu-btn">💼 Professional Rewrite</button>
+      <button onclick="setMode('rewrite_short')" class="menu-btn">🔍 Shorten</button>
+      <button onclick="setMode('rewrite_long')" class="menu-btn">🔎 Expand</button>
+    </div>
+
+    <div class="menu-section">
+      <p class="menu-label">Other Tools</p>
+      <button onclick="setMode('seo')" class="menu-btn">⚡ SEO Analysis</button>
+      <button onclick="setMode('multi')" class="menu-btn">🎨 3 Versions</button>
+      <button onclick="setMode('idea')" class="menu-btn">💡 Ideas</button>
+      <button onclick="setMode('analyze')" class="menu-btn">📚 Score Analysis</button>
+      <button onclick="setMode('imgprompt')" class="menu-btn">🖼 Image Prompt</button>
+    </div>
+  </aside>
+
+  <!-- MAIN PANEL -->
+  <main class="main-panel">
+
+    <div class="panel-header">
+      <h2 id="functionTitle">✨ Auto Generate</h2>
+      <p id="functionDesc" class="panel-desc">
+        Enter a keyword and the AI will create a polished article.
+      </p>
+    </div>
+
+    <!-- Input -->
+    <section class="panel glass-white">
+      <label class="panel-label">Input</label>
+      <textarea id="userInput" placeholder="Type your text or topic here."></textarea>
+    </section>
+
+    <!-- Options -->
+    <section class="panel glass-white options-panel">
+      <div class="opt-box">
+        <label>Length</label>
+        <select id="length">
+          <option value="normal">Normal</option>
+          <option value="short">Short</option>
+          <option value="long">Long</option>
+        </select>
+      </div>
+
+      <div class="opt-box">
+        <label>Tone</label>
+        <select id="tone">
+          <option value="default">Default</option>
+          <option value="warm">Warm</option>
+          <option value="professional">Professional</option>
+          <option value="emotional">Emotional</option>
+          <option value="mz">Youthful</option>
+          <option value="news">News Style</option>
+          <option value="thesis">Academic</option>
+          <option value="copy">Copywriting</option>
+          <option value="sns">SNS Style</option>
+          <option value="lecture">Lecture Style</option>
+        </select>
+      </div>
+
+      <div class="btn-box">
+        <button class="btn primary" onclick="generate()"><i>🚀</i> Generate</button>
+        <button class="btn reset" onclick="resetFields()"><i>🔄</i> Reset</button>
+        <button class="btn copy" onclick="copyText()"><i>📋</i> Copy</button>
+      </div>
+    </section>
+
+    <!-- Output -->
+    <section class="panel glass-white big-output">
+      <label class="panel-label">Output</label>
+      <pre id="resultBox">Your result will appear here.</pre>
+    </section>
+
+  </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
