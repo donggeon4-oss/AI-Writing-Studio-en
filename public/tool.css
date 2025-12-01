@@ -1,9 +1,9 @@
 /* ======================================= */
-/* GLOBAL BACKGROUND FOR WORKSPACE */
+/* GLOBAL BACKGROUND */
 /* ======================================= */
 body.workspace-bg {
   margin: 0;
-  font-family: 'Pretendard', system-ui, sans-serif;
+  font-family: 'Pretendard', sans-serif;
   background: linear-gradient(
     180deg,
     #fde5df 0%,
@@ -16,15 +16,18 @@ body.workspace-bg {
   min-height: 100vh;
   display: flex;
   justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/* GRID */
+/* GRID LAYOUT */
 .workspace-grid {
   display: grid;
   grid-template-columns: 260px 1fr;
   width: 100%;
   max-width: 1400px;
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 /* SIDEBAR */
@@ -32,7 +35,7 @@ body.workspace-bg {
   padding: 32px 22px;
   background: rgba(255, 240, 230, 0.55);
   border-right: 1px solid rgba(255, 200, 180, 0.55);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(22px);
   box-shadow: 4px 0 24px rgba(255, 150, 120, 0.2);
 }
 
@@ -45,112 +48,125 @@ body.workspace-bg {
 
 .logo-sub {
   font-size: 12px;
-  opacity: 0.6;
+  opacity: 0.65;
   margin-top: -4px;
 }
 
 .menu-section {
-  margin-top: 24px;
+  margin-top: 30px;
 }
 
 .menu-label {
   font-size: 13px;
   opacity: 0.55;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  display: block;
 }
 
 .menu-btn {
   display: block;
   width: 100%;
-  padding: 12px 14px;
-  margin-bottom: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
   font-size: 14px;
   text-align: left;
   border-radius: 14px;
   border: 1px solid rgba(255, 200, 180, 0.55);
-  background: rgba(255, 245, 240, 0.75);
+  background: rgba(255, 245, 240, 0.85);
   box-shadow: 0 4px 12px rgba(255, 150, 130, 0.15);
   cursor: pointer;
   transition: 0.2s ease;
 }
 
 .menu-btn:hover {
-  background: rgba(255, 230, 220, 0.9);
+  background: rgba(255, 230, 220, 0.95);
   transform: translateY(-2px);
 }
 
 /* MAIN PANEL */
 .main-panel {
-  padding: 40px 50px;
+  padding: 50px 60px;
+  box-sizing: border-box;
 }
 
 .panel-header h2 {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 800;
   color: #5c3a2e;
 }
 
 .panel-desc {
-  margin-top: 6px;
-  font-size: 14px;
+  margin-top: 8px;
+  font-size: 15px;
   opacity: 0.6;
 }
 
-/* PANEL BLOCK */
+/* PANEL BLOCKS */
 .panel {
-  margin-top: 24px;
-  padding: 28px;
-  background: rgba(255, 240, 230, 0.55);
-  border: 1px solid rgba(255, 205, 185, 0.7);
-  border-radius: 20px;
-  backdrop-filter: blur(12px);
+  margin-top: 28px;
+  padding: 30px;
+  background: rgba(255, 240, 230, 0.6);
+  border: 1px solid rgba(255, 205, 185, 0.75);
+  border-radius: 22px;
+  backdrop-filter: blur(16px);
   box-shadow: 0 6px 28px rgba(255, 150, 120, 0.25);
 }
 
 .panel-label {
   display: block;
-  font-size: 14px;
-  margin-bottom: 10px;
+  font-size: 15px;
+  margin-bottom: 14px;
   color: #6a4539;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* TEXTAREA */
 textarea#userInput {
   width: 100%;
-  height: 150px;
+  height: 165px;
   padding: 16px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 200, 180, 0.75);
-  background: rgba(255, 245, 240, 0.8);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 200, 180, 0.8);
+  background: rgba(255, 245, 240, 0.9);
   color: #5c3a2e;
   font-size: 15px;
   resize: none;
   outline: none;
-  backdrop-filter: blur(10px);
+  box-sizing: border-box;
+  backdrop-filter: blur(12px);
+  margin-top: 6px;
+  margin-bottom: 6px;
+  box-shadow: inset 0 0 8px rgba(255, 150, 120, 0.15);
 }
 
-/* OPTIONS */
+/* OPTIONS PANEL */
 .options-panel {
   display: flex;
-  gap: 22px;
+  gap: 26px;
   flex-wrap: wrap;
+  margin-top: 14px;
 }
 
 .opt-box {
   flex: 1;
-  min-width: 150px;
+  min-width: 160px;
 }
 
 select {
   width: 100%;
-  padding: 12px 14px;
-  background: rgba(255, 240, 230, 0.9);
+  padding: 14px 16px;
+  background: rgba(255, 240, 230, 0.95);
   border: 1px solid rgba(255, 200, 180, 0.85);
   color: #5c4133;
   font-size: 14px;
-  border-radius: 14px;
-  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+select:hover {
+  background: rgba(255, 232, 220, 0.95);
 }
 
 /* BUTTONS */
@@ -159,24 +175,24 @@ select {
   gap: 14px;
   flex-wrap: wrap;
   align-items: center;
+  margin-top: 18px;
 }
 
-/* Base button */
 .btn {
+  padding: 16px 30px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 26px;
-  font-size: 15px;
-  font-weight: 600;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
   transition: 0.25s ease;
 }
 
-/* Primary */
+/* PRIMARY BUTTON */
 .btn.primary {
   background: linear-gradient(
     135deg,
@@ -187,7 +203,6 @@ select {
   color: #fff;
   box-shadow:
     0 12px 28px rgba(255, 140, 120, 0.35),
-    0 3px 6px rgba(255, 190, 170, 0.45),
     inset 0 0 8px rgba(255, 255, 255, 0.35);
 }
 
@@ -198,7 +213,7 @@ select {
     inset 0 0 10px rgba(255, 255, 255, 0.45);
 }
 
-/* Reset */
+/* RESET BUTTON */
 .btn.reset {
   background: linear-gradient(
     135deg,
@@ -215,7 +230,7 @@ select {
   transform: translateY(-2px);
 }
 
-/* Copy */
+/* COPY BUTTON */
 .btn.copy {
   background: linear-gradient(
     135deg,
@@ -236,13 +251,48 @@ select {
   font-size: 18px;
 }
 
-/* OUTPUT */
+/* OUTPUT BOX */
 .big-output {
-  min-height: 200px;
+  min-height: 220px;
+  margin-top: 14px;
 }
 
 #resultBox {
   white-space: pre-wrap;
   line-height: 1.6;
   color: #5c3a2e;
+  font-size: 15px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 980px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 200, 180, 0.55);
+    box-shadow: none;
+    padding: 24px 20px;
+  }
+
+  .main-panel {
+    padding: 34px 26px;
+  }
+}
+
+@media (max-width: 540px) {
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  textarea#userInput {
+    height: 140px;
+  }
+
+  select {
+    padding: 12px 14px;
+  }
 }

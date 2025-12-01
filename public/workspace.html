@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Writing Studio – Workspace</title>
 
-  <!-- Main Style -->
+  <!-- Global / reset -->
   <link rel="stylesheet" href="style.css" />
-
-  <!-- Workspace UI Style -->
+  <!-- Workspace UI -->
   <link rel="stylesheet" href="tool.css" />
 </head>
 
@@ -16,8 +15,8 @@
 
 <div class="workspace-grid">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar glass">
+  <!-- Sidebar -->
+  <aside class="sidebar">
     <div class="logo-area">
       <div class="logo-title">AI Writing Studio</div>
       <div class="logo-sub">Premium Writing Workspace</div>
@@ -25,11 +24,11 @@
 
     <div class="menu-section">
       <p class="menu-label">Auto Writing</p>
-      <button onclick="setMode('auto')" class="menu-btn">✨ Auto Generate</button>
+      <button onclick="setMode('auto')" class="menu-btn">✨ Auto Article</button>
     </div>
 
     <div class="menu-section">
-      <p class="menu-label">Document Tools</p>
+      <p class="menu-label">Documents</p>
       <button onclick="setMode('summary')" class="menu-btn">📝 Summary</button>
       <button onclick="setMode('email')" class="menu-btn">📧 Email</button>
       <button onclick="setMode('reply')" class="menu-btn">💬 Reply</button>
@@ -37,45 +36,45 @@
     </div>
 
     <div class="menu-section">
-      <p class="menu-label">Blog Tools</p>
-      <button onclick="setMode('blog')" class="menu-btn">✍ Full Blog Writing</button>
-      <button onclick="setMode('blog_step1')" class="menu-btn">1️⃣ Step 1 – Keyword Analysis</button>
+      <p class="menu-label">Blog</p>
+      <button onclick="setMode('blog')" class="menu-btn">✍ Full Blog</button>
+      <button onclick="setMode('blog_step1')" class="menu-btn">1️⃣ Step 1 – Analysis</button>
       <button onclick="setMode('blog_step2')" class="menu-btn">2️⃣ Step 2 – Outline</button>
-      <button onclick="setMode('blog_step3')" class="menu-btn">3️⃣ Step 3 – Full Article</button>
+      <button onclick="setMode('blog_step3')" class="menu-btn">3️⃣ Step 3 – Content</button>
     </div>
 
     <div class="menu-section">
       <p class="menu-label">Rewriting</p>
-      <button onclick="setMode('rewrite_soft')" class="menu-btn">♻ Softer Tone</button>
-      <button onclick="setMode('rewrite_pro')" class="menu-btn">💼 Professional Rewrite</button>
-      <button onclick="setMode('rewrite_short')" class="menu-btn">🔍 Shorten</button>
+      <button onclick="setMode('rewrite_soft')" class="menu-btn">♻ Soft Rewrite</button>
+      <button onclick="setMode('rewrite_pro')" class="menu-btn">💼 Professional</button>
+      <button onclick="setMode('rewrite_short')" class="menu-btn">🔍 Short / Summary</button>
       <button onclick="setMode('rewrite_long')" class="menu-btn">🔎 Expand</button>
     </div>
 
     <div class="menu-section">
-      <p class="menu-label">Other Tools</p>
+      <p class="menu-label">Extra Tools</p>
       <button onclick="setMode('seo')" class="menu-btn">⚡ SEO Analysis</button>
       <button onclick="setMode('multi')" class="menu-btn">🎨 3 Versions</button>
-      <button onclick="setMode('idea')" class="menu-btn">💡 Ideas</button>
-      <button onclick="setMode('analyze')" class="menu-btn">📚 Score Analysis</button>
+      <button onclick="setMode('idea')" class="menu-btn">💡 Idea Generator</button>
+      <button onclick="setMode('analyze')" class="menu-btn">📚 Text Scoring</button>
       <button onclick="setMode('imgprompt')" class="menu-btn">🖼 Image Prompt</button>
     </div>
   </aside>
 
-  <!-- MAIN PANEL -->
+  <!-- Main Panel -->
   <main class="main-panel">
 
     <div class="panel-header">
-      <h2 id="functionTitle">✨ Auto Generate</h2>
+      <h2 id="functionTitle">✨ Auto Article</h2>
       <p id="functionDesc" class="panel-desc">
-        Enter a keyword and the AI will create a polished article.
+        Enter a topic or keyword and the AI will generate a full article.
       </p>
     </div>
 
     <!-- Input -->
     <section class="panel glass-white">
       <label class="panel-label">Input</label>
-      <textarea id="userInput" placeholder="Type your text or topic here."></textarea>
+      <textarea id="userInput" placeholder="Type your topic or paste your text here."></textarea>
     </section>
 
     <!-- Options -->
@@ -96,11 +95,11 @@
           <option value="warm">Warm</option>
           <option value="professional">Professional</option>
           <option value="emotional">Emotional</option>
-          <option value="mz">Youthful</option>
+          <option value="mz">Gen-Z Style</option>
           <option value="news">News Style</option>
           <option value="thesis">Academic</option>
           <option value="copy">Copywriting</option>
-          <option value="sns">SNS Style</option>
+          <option value="sns">Social Media</option>
           <option value="lecture">Lecture Style</option>
         </select>
       </div>
@@ -114,7 +113,7 @@
 
     <!-- Output -->
     <section class="panel glass-white big-output">
-      <label class="panel-label">Output</label>
+      <label class="panel-label">Result</label>
       <pre id="resultBox">Your result will appear here.</pre>
     </section>
 
