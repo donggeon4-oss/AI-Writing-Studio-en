@@ -5,10 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Writing Studio – Workspace</title>
 
-  <!-- Global / reset -->
+  <!-- Common Styles -->
   <link rel="stylesheet" href="style.css" />
-  <!-- Workspace UI -->
+
+  <!-- Workspace Styles -->
   <link rel="stylesheet" href="tool.css" />
+
+  <script>
+    // 🔐 License check – if no saved key, redirect to login
+    if (!localStorage.getItem("ai_license")) {
+      window.location.href = "/login.html";
+    }
+  </script>
 </head>
 
 <body class="workspace-bg">
@@ -16,65 +24,72 @@
 <div class="workspace-grid">
 
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar glass">
     <div class="logo-area">
       <div class="logo-title">AI Writing Studio</div>
-      <div class="logo-sub">Premium Writing Workspace</div>
+      <div class="logo-sub">Premium AI Workspace</div>
     </div>
 
+    <!-- Auto Generate -->
     <div class="menu-section">
       <p class="menu-label">Auto Writing</p>
-      <button onclick="setMode('auto')" class="menu-btn">✨ Auto Article</button>
+      <button onclick="setMode('auto')" class="menu-btn">✨ Auto Generate</button>
     </div>
 
+    <!-- Document Tools -->
     <div class="menu-section">
-      <p class="menu-label">Documents</p>
+      <p class="menu-label">Document Tools</p>
       <button onclick="setMode('summary')" class="menu-btn">📝 Summary</button>
-      <button onclick="setMode('email')" class="menu-btn">📧 Email</button>
+      <button onclick="setMode('email')" class="menu-btn">📧 Email Writing</button>
       <button onclick="setMode('reply')" class="menu-btn">💬 Reply</button>
       <button onclick="setMode('report')" class="menu-btn">📄 Report</button>
     </div>
 
+    <!-- Blog Tools -->
     <div class="menu-section">
-      <p class="menu-label">Blog</p>
+      <p class="menu-label">Blog Writing</p>
       <button onclick="setMode('blog')" class="menu-btn">✍ Full Blog</button>
-      <button onclick="setMode('blog_step1')" class="menu-btn">1️⃣ Step 1 – Analysis</button>
+      <button onclick="setMode('blog_step1')" class="menu-btn">1️⃣ Step 1 – Keyword Analysis</button>
       <button onclick="setMode('blog_step2')" class="menu-btn">2️⃣ Step 2 – Outline</button>
-      <button onclick="setMode('blog_step3')" class="menu-btn">3️⃣ Step 3 – Content</button>
+      <button onclick="setMode('blog_step3')" class="menu-btn">3️⃣ Step 3 – Article</button>
     </div>
 
+    <!-- Rewriting -->
     <div class="menu-section">
       <p class="menu-label">Rewriting</p>
       <button onclick="setMode('rewrite_soft')" class="menu-btn">♻ Soft Rewrite</button>
-      <button onclick="setMode('rewrite_pro')" class="menu-btn">💼 Professional</button>
-      <button onclick="setMode('rewrite_short')" class="menu-btn">🔍 Short / Summary</button>
+      <button onclick="setMode('rewrite_pro')" class="menu-btn">💼 Pro Rewrite</button>
+      <button onclick="setMode('rewrite_short')" class="menu-btn">🔍 Shorten</button>
       <button onclick="setMode('rewrite_long')" class="menu-btn">🔎 Expand</button>
     </div>
 
+    <!-- Other Tools -->
     <div class="menu-section">
-      <p class="menu-label">Extra Tools</p>
+      <p class="menu-label">Other Tools</p>
       <button onclick="setMode('seo')" class="menu-btn">⚡ SEO Analysis</button>
       <button onclick="setMode('multi')" class="menu-btn">🎨 3 Versions</button>
       <button onclick="setMode('idea')" class="menu-btn">💡 Idea Generator</button>
-      <button onclick="setMode('analyze')" class="menu-btn">📚 Text Scoring</button>
+      <button onclick="setMode('analyze')" class="menu-btn">📚 Writing Score</button>
       <button onclick="setMode('imgprompt')" class="menu-btn">🖼 Image Prompt</button>
     </div>
+
   </aside>
 
   <!-- Main Panel -->
   <main class="main-panel">
 
+    <!-- Title -->
     <div class="panel-header">
-      <h2 id="functionTitle">✨ Auto Article</h2>
+      <h2 id="functionTitle">✨ Auto Generate</h2>
       <p id="functionDesc" class="panel-desc">
-        Enter a topic or keyword and the AI will generate a full article.
+        Enter a topic and AI will generate a full, high-quality article.
       </p>
     </div>
 
-    <!-- Input -->
+    <!-- User Input -->
     <section class="panel glass-white">
-      <label class="panel-label">Input</label>
-      <textarea id="userInput" placeholder="Type your topic or paste your text here."></textarea>
+      <label class="panel-label">Input Content</label>
+      <textarea id="userInput" placeholder="Type your text or topic here..."></textarea>
     </section>
 
     <!-- Options -->
@@ -96,7 +111,7 @@
           <option value="professional">Professional</option>
           <option value="emotional">Emotional</option>
           <option value="mz">Gen-Z Style</option>
-          <option value="news">News Style</option>
+          <option value="news">News Tone</option>
           <option value="thesis">Academic</option>
           <option value="copy">Copywriting</option>
           <option value="sns">Social Media</option>
@@ -111,7 +126,7 @@
       </div>
     </section>
 
-    <!-- Output -->
+    <!-- Result -->
     <section class="panel glass-white big-output">
       <label class="panel-label">Result</label>
       <pre id="resultBox">Your result will appear here.</pre>
@@ -120,6 +135,8 @@
   </main>
 </div>
 
+<!-- Script -->
 <script src="script.js"></script>
+
 </body>
 </html>

@@ -1,446 +1,221 @@
-// ========================================
-// Ultimate AI Writing Studio - PRO Server
-//  - Model auto-selection (fast + high quality)
-//  - In-memory cache (speed + 비용 절감)
-//  - Basic rate limiting (보안 + 안정성)
-// ========================================
+// =======================================
+//  Ultimate AI Writing Studio — SaaS Server
+// =======================================
 
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import OpenAI from "openai";
-import crypto from "crypto";
+import fetch from "node-fetch";
 
-// ------------------------------
-// 1. ENV & 기본 설정
-// ------------------------------
 dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "8mb" }));
 
-// 캐시/헤더용
+// No cache
 app.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
   next();
 });
 
-// 정적 파일
+// Serve static
 app.use(express.static("public"));
 
-// ------------------------------
-// 2. OpenAI 클라이언트 설정
-// ------------------------------
-const OPENAI_KEY = process.env.OPENAI_API_KEY;
-
-if (!OPENAI_KEY) {
-  console.log("❌ ERROR: OPENAI_API_KEY is missing in .env");
-  console.log("➡️  .env 파일에 OPENAI_API_KEY=sk-... 형식으로 넣어줘야 합니다.");
-}
-
+// ===== OPENAI CLIENT =====
 const openai = new OpenAI({
-  apiKey: OPENAI_KEY || "NO_KEY_PROVIDED"
+  apiKey: process.env.OPENAI_API_KEY
 });
 
-// ------------------------------
-// 3. 간단 레이트 리밋 (IP 기준)
-// ------------------------------
-//
-//  - windowMs 동안 maxRequests 회 이상이면 차단
-//  - 실제 서비스에서는 Redis 나 DB 로 옮기는 걸 추천
-//
-const rateLimitStore = new Map();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1분
-const RATE_LIMIT_MAX_REQUESTS = 20;     // 1분에 20번
+// ===== LICENSE VERIFY (LEMON SQUEEZY) =====
+app.post("/verify-license", async (req, res) => {
+  const { key } = req.body;
 
-function rateLimit(req, res, next) {
-  const ip = req.headers["x-forwarded-for"]?.toString().split(",")[0].trim()
-    || req.socket.remoteAddress
-    || "unknown";
-
-  const now = Date.now();
-  const record = rateLimitStore.get(ip) || { count: 0, start: now };
-
-  if (now - record.start > RATE_LIMIT_WINDOW_MS) {
-    // 새 윈도우
-    rateLimitStore.set(ip, { count: 1, start: now });
-    return next();
-  }
-
-  if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return res.status(429).json({
-      error: "Too many requests. Please wait a moment and try again."
+  try {
+    const response = await fetch(`https://api.lemonsqueezy.com/v1/licenses/validate`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.LEMON_API_KEY}`,
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        license_key: key
+      })
     });
+
+    const result = await response.json();
+
+    if (result.valid) {
+      return res.json({ valid: true });
+    }
+
+    return res.json({ valid: false });
+
+  } catch (err) {
+    console.log("License error:", err);
+    return res.json({ valid: false });
   }
+});
 
-  record.count += 1;
-  rateLimitStore.set(ip, record);
-  next();
+// =======================================
+//   MULTI-PASS QUALITY BOOST ENGINE
+// =======================================
+async function multiPass(prompt, systemPrompt) {
+
+  // 1단계: 초안 생성
+  const first = await openai.chat.completions.create({
+    model: "gpt-4o-mini-tts",
+    temperature: 0.85,
+    max_tokens: 1200,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: prompt }
+    ]
+  });
+
+  const pass1 = first.choices[0].message.content;
+
+  // 2단계: 문장 품질 향상
+  const second = await openai.chat.completions.create({
+    model: "gpt-4o-mini-tts",
+    temperature: 0.7,
+    max_tokens: 1100,
+    messages: [
+      {
+        role: "system",
+        content: "Rewrite the text to be clearer, more polished, more natural and professional."
+      },
+      { role: "user", content: pass1 }
+    ]
+  });
+
+  const pass2 = second.choices[0].message.content;
+
+  // 3단계: 최종 정제
+  const third = await openai.chat.completions.create({
+    model: "gpt-4o-mini-tts",
+    temperature: 0.55,
+    max_tokens: 950,
+    messages: [
+      {
+        role: "system",
+        content:
+          "Refine the text to be premium-quality, smooth, elegant and ready for publication."
+      },
+      { role: "user", content: pass2 }
+    ]
+  });
+
+  return third.choices[0].message.content;
 }
 
-// 모든 API 에 레이트 리밋 적용
-app.use("/generate", rateLimit);
-
-// ------------------------------
-// 4. In-memory 캐시 (간단 LRU 느낌)
-// ------------------------------
-//
-//  - key: 입력 + 모드 + 길이 + 톤 을 해시로 묶어서 사용
-//  - value: { result, createdAt }
-//
-const cacheStore = new Map();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5분
-const CACHE_MAX_ITEMS = 200;
-
-function makeCacheKey(payload) {
-  const str = JSON.stringify(payload);
-  return crypto.createHash("sha256").update(str).digest("hex");
-}
-
-function getFromCache(key) {
-  const item = cacheStore.get(key);
-  if (!item) return null;
-  if (Date.now() - item.createdAt > CACHE_TTL_MS) {
-    cacheStore.delete(key);
-    return null;
-  }
-  return item.result;
-}
-
-function setCache(key, result) {
-  if (cacheStore.size >= CACHE_MAX_ITEMS) {
-    // 가장 오래된 것 하나 삭제 (대충 LRU 비슷하게)
-    const firstKey = cacheStore.keys().next().value;
-    cacheStore.delete(firstKey);
-  }
-  cacheStore.set(key, { result, createdAt: Date.now() });
-}
-
-// ------------------------------
-// 5. 모드별 모델 선택 (성능 + 비용 최적화)
-// ------------------------------
-//
-//  - 가벼운 작업: gpt-4o-mini
-//  - 무거운 자동생성/블로그: gpt-4o
-//
-const MODE_MODEL_MAP = {
-  auto: "gpt-4o",
-  blog: "gpt-4o",
-  blog_step3: "gpt-4o",
-  summary: "gpt-4o-mini",
-  email: "gpt-4o-mini",
-  reply: "gpt-4o-mini",
-  report: "gpt-4o-mini",
-  rewrite_soft: "gpt-4o-mini",
-  rewrite_pro: "gpt-4o-mini",
-  rewrite_short: "gpt-4o-mini",
-  rewrite_long: "gpt-4o-mini",
-  seo: "gpt-4o-mini",
-  multi: "gpt-4o-mini",
-  blog_step1: "gpt-4o-mini",
-  blog_step2: "gpt-4o-mini",
-  idea: "gpt-4o-mini",
-  analyze: "gpt-4o-mini",
-  imgprompt: "gpt-4o-mini"
-};
-
-function getModelForMode(mode) {
-  return MODE_MODEL_MAP[mode] || "gpt-4o-mini";
-}
-
-// ========================================
-// 6. 메인 AI 엔진
-// ========================================
+// =======================================
+//  GENERATE ROUTE
+// =======================================
 app.post("/generate", async (req, res) => {
-  // 키가 아예 없는 경우 방어
-  if (!OPENAI_KEY || OPENAI_KEY === "NO_KEY_PROVIDED") {
-    return res.status(500).json({
-      error: "Server is missing OPENAI_API_KEY. Please set it in .env."
-    });
-  }
+  const { userInput, mode, length, tone } = req.body;
 
-  const { userInput, mode, length, tone } = req.body || {};
+  // Length
+  const lengthMap = {
+    short: "Around 400–700 characters",
+    normal: "Around 1200–1600 characters",
+    long: "Around 2500–3500 characters"
+  };
+  const lengthGuide = lengthMap[length] || "";
 
-  if (!userInput || !mode) {
-    return res.status(400).json({
-      error: "Missing 'userInput' or 'mode' in request body."
-    });
-  }
-
-  // --------------------------
-  // 길이 옵션
-  // --------------------------
-  let style = "";
-  if (length === "short") style = "Write about 700 characters concisely.";
-  if (length === "normal") style = "Write about 1500 characters naturally.";
-  if (length === "long") style = "Write about 2500–3500 characters with rich detail.";
-
-  // --------------------------
-  // 톤 옵션
-  // --------------------------
+  // Tone
   const toneMap = {
     default: "",
-    warm: "Write in a warm and gentle tone.",
-    professional: "Write in a clean and professional tone.",
-    emotional: "Write with emotional and expressive language.",
-    mz: "Write in a witty Gen-Z style.",
-    news: "Write concisely like a news article.",
-    thesis: "Write formally in academic style.",
-    copy: "Write in a marketing / copywriting tone.",
-    sns: "Write casually like a social media post.",
-    lecture: "Explain clearly like a lecturer."
+    warm: "Write in warm, friendly tone",
+    professional: "Write in professional tone",
+    emotional: "Use emotional, expressive tone",
+    mz: "Use modern, casual Gen Z tone",
+    news: "Write concisely like news",
+    thesis: "Write in academic tone",
+    copy: "Write in persuasive copywriting tone",
+    sns: "Write casually like social media",
+    lecture: "Write like a teacher explaining clearly"
   };
   const toneGuide = toneMap[tone] || "";
 
-  // --------------------------
-  // 캐시 키 생성 & 조회
-  // --------------------------
-  const cacheKey = makeCacheKey({ userInput, mode, length, tone });
-  const cached = getFromCache(cacheKey);
-  if (cached) {
-    return res.json({
-      result: cached,
-      fromCache: true
-    });
-  }
+  // System presets
+  const SYSTEM = {
+    summary: "You are an elite summarization AI.",
+    email: "You are a business email writing expert.",
+    reply: "You craft warm, friendly replies.",
+    report: "You are a professional report writer.",
+    blog: "You generate premium-quality blog articles.",
+    rewrite_soft: "Rewrite softly, naturally.",
+    rewrite_pro: "Rewrite professionally.",
+    rewrite_short: "Rewrite concisely.",
+    rewrite_long: "Rewrite with expansions.",
+    seo: "You are an SEO analyzer.",
+    idea: "You generate creative ideas.",
+    analyze: "You analyze writing quality.",
+    imgprompt: "You generate image prompts."
+  };
 
-  // --------------------------
-  // 모드별 프롬프트 작성
-  // --------------------------
-  let prompt = "";
-
+  // AUTO MODE: 4o full creative mode
   if (mode === "auto") {
-    prompt = `
-You are a premium writing assistant generating a full high-quality article.
+    const autoPrompt = `
+Write a complete high-quality article.
 
-[Topic]
+Topic:
 ${userInput}
 
-[Requirements]
-- ${style}
+Requirements:
+- ${lengthGuide}
 - ${toneGuide}
-- Include SEO optimization naturally
-- Include one H1 title
-- Include 3–6 H2 sections
-- Each H2 contains 2–4 paragraphs
-- Include a clear conclusion
-- Avoid repetition
-- Human-like tone
-- High readability
+- Include H1, H2 sections
+- Include SEO naturally
+- No repetition
+- Smooth and human-like writing
     `;
-  } else {
-    const MODE_PROMPTS = {
-      summary: `
-Summarize the following text.
-${style}
-${toneGuide}
 
-${userInput}
-`,
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        temperature: 0.75,
+        max_tokens: 2600,
+        messages: [
+          { role: "system", content: "You are a premium blog content writer." },
+          { role: "user", content: autoPrompt }
+        ]
+      });
 
-      email: `
-Write a natural, polite email based on the content below.
-${toneGuide}
-
-${userInput}
-`,
-
-      reply: `
-Write a warm, friendly reply to the following message.
-${toneGuide}
-
-${userInput}
-`,
-
-      report: `
-Write a one-page report based on the content below.
-${style}
-${toneGuide}
-
-${userInput}
-`,
-
-      blog: `
-Write a full blog article on the following topic:
-
-${userInput}
-
-${style}
-${toneGuide}
-`,
-
-      rewrite_soft: `
-Rewrite the passage below in a softer and more natural tone.
-${toneGuide}
-
-${userInput}
-`,
-
-      rewrite_pro: `
-Rewrite the passage below in a professional business tone.
-${toneGuide}
-
-${userInput}
-`,
-
-      rewrite_short: `
-Rewrite the passage below concisely, keeping only core points.
-${toneGuide}
-
-${userInput}
-`,
-
-      rewrite_long: `
-Expand the passage below using richer detail and examples.
-${toneGuide}
-
-${userInput}
-`,
-
-      seo: `
-Perform SEO analysis for the following text:
-
-${userInput}
-
-Include:
-- 8–12 suggested keywords
-- Overall search intent
-- One 150-character meta description
-- 5 improvement suggestions
-`,
-
-      multi: `
-Rewrite the text below in 3 different styles.
-
-A) Warm & friendly  
-B) Professional business  
-C) Casual SNS  
-
-Text:
-${userInput}
-`,
-
-      blog_step1: `
-Perform keyword and intent analysis for:
-
-${userInput}
-
-Include:
-- Search intent
-- Core keywords
-- Target audience
-- Recommended writing direction
-`,
-
-      blog_step2: `
-Create a detailed blog outline based on:
-
-${userInput}
-
-Requirements:
-- 4–6 H2 sections
-- Each H2 includes 2–3 H3 subsections
-`,
-
-      blog_step3: `
-Write a full 2000–3000-character blog article using the outline below.
-
-${userInput}
-
-Requirements:
-- Keep the H2 / H3 structure
-- Apply SEO keywords naturally
-- Use a warm, easy-to-read tone
-`,
-
-      idea: `
-Generate 10 content ideas based on this keyword or topic:
-${userInput}
-
-For each idea, include a one-line explanation.
-`,
-
-      analyze: `
-Analyze the following writing:
-
-${userInput}
-
-Include:
-- Score breakdown (clarity, structure, tone, engagement)
-- 3 strengths
-- 3 weaknesses
-- Final summary
-`,
-
-      imgprompt: `
-Create an image-generation prompt based on:
-
-${userInput}
-
-Provide:
-- Short simple prompt (one line)
-- Detailed descriptive prompt
-- English version
-`
-    };
-
-    prompt = MODE_PROMPTS[mode];
+      return res.json({ result: response.choices[0].message.content });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ error: "Auto mode error" });
+    }
   }
 
-  if (!prompt) {
-    return res.status(400).json({ error: `Unknown mode: ${mode}` });
-  }
+  // ==== Non-auto → Multi-Pass high quality ====
+  const systemPrompt = SYSTEM[mode] || "You are a premium writing assistant.";
 
-  // --------------------------
-  // OpenAI 호출
-  // --------------------------
-  const modelName = getModelForMode(mode);
+  const finalPrompt = `
+User text:
+${userInput}
+
+Instructions:
+- Length: ${lengthGuide}
+- Tone: ${toneGuide}
+- Write naturally, clearly, professionally
+  `;
 
   try {
-    const response = await openai.chat.completions.create({
-      model: modelName,
-      temperature: mode === "seo" || mode === "analyze" ? 0.3 : 0.7,
-      max_tokens: mode === "auto" || mode === "blog" || mode === "blog_step3"
-        ? 2600
-        : 1400,
-      messages: [
-        { role: "system", content: "You are a premium writing AI assistant." },
-        { role: "user", content: prompt }
-      ]
-    });
-
-    const resultText = response.choices[0]?.message?.content || "";
-
-    // 캐시에 저장
-    setCache(cacheKey, resultText);
-
-    return res.json({
-      result: resultText,
-      fromCache: false,
-      model: modelName
-    });
-
+    const result = await multiPass(finalPrompt, systemPrompt);
+    res.json({ result });
   } catch (err) {
-    console.error("🔴 AI ERROR:", err);
-    return res.status(500).json({
-      error: "Generation failed. Please try again in a moment."
-    });
+    console.log("Generation error:", err);
+    res.status(500).json({ error: "Generation failed" });
   }
 });
 
-// ========================================
-// 7. 서버 시작
-// ========================================
+// =======================================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("========================================");
-  console.log(" Ultimate AI Writing Studio - PRO Server");
-  console.log(" PORT :", PORT);
-  if (!OPENAI_KEY) {
-    console.log(" ⚠️  OPENAI_API_KEY is NOT set. API calls will fail.");
-  } else {
-    console.log(" ✅ OPENAI_API_KEY loaded.");
-  }
-  console.log("========================================");
-});
+app.listen(PORT, () =>
+  console.log(`🚀 AI Writing Studio SaaS Running on ${PORT}`)
+);
